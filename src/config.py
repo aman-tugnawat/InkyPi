@@ -1,7 +1,7 @@
 import os
 import json
 import logging
-from dotenv import load_dotenv
+from dotenv import load_dotenv, set_key
 from model import PlaylistManager, RefreshInfo
 
 logger = logging.getLogger(__name__)
@@ -95,6 +95,20 @@ class Config:
         """Loads an environment variable using dotenv and returns its value."""
         load_dotenv(override=True)
         return os.getenv(key)
+
+    def set_env_key(self, key, value):
+        """Sets an environment variable in the .env file."""
+        env_file = os.path.join(self.BASE_DIR, "..", ".env")
+        if not os.path.exists(env_file):
+             # Try creating it in the current directory if it doesn't exist in parent
+             env_file = os.path.join(self.BASE_DIR, ".env")
+             if not os.path.exists(env_file):
+                 # Default to parent directory if neither exists, create it
+                 env_file = os.path.join(self.BASE_DIR, "..", ".env")
+                 open(env_file, 'a').close()
+
+        set_key(env_file, key, value)
+        os.environ[key] = value
 
     def load_playlist_manager(self):
         """Loads the playlist manager object from the config."""

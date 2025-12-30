@@ -20,7 +20,7 @@ import logging
 import threading
 import argparse
 from utils.app_utils import generate_startup_image
-from flask import Flask, request
+from flask import Flask, request, jsonify
 from werkzeug.serving import is_running_from_reloader
 from config import Config
 from display.display_manager import DisplayManager
@@ -80,6 +80,46 @@ app.register_blueprint(main_bp)
 app.register_blueprint(settings_bp)
 app.register_blueprint(plugin_bp)
 app.register_blueprint(playlist_bp)
+
+@app.route('/api/keys', methods=['GET'])
+def get_api_keys():
+    keys = [
+        "OPEN_WEATHER_MAP_SECRET",
+        "OPEN_AI_SECRET",
+        "GITHUB_SECRET",
+        "NASA_SECRET",
+        "IMMICH_KEY",
+        "UNSPLASH_ACCESS_KEY"
+    ]
+    key_status = {}
+    for key in keys:
+        value = device_config.load_env_key(key)
+        key_status[key] = {
+            "configured": bool(value),
+            "masked": f"{value[:4]}...{value[-4:]}" if value and len(value) > 8 else "****" if value else None
+        }
+    return jsonify(key_status)
+
+@app.route('/api/keys', methods=['POST'])
+def update_api_keys():
+    data = request.json
+    try:
+        if "OPEN_WEATHER_MAP_SECRET" in data:
+            device_config.set_env_key("OPEN_WEATHER_MAP_SECRET", data["OPEN_WEATHER_MAP_SECRET"])
+        if "OPEN_AI_SECRET" in data:
+            device_config.set_env_key("OPEN_AI_SECRET", data["OPEN_AI_SECRET"])
+        if "GITHUB_SECRET" in data:
+            device_config.set_env_key("GITHUB_SECRET", data["GITHUB_SECRET"])
+        if "NASA_SECRET" in data:
+            device_config.set_env_key("NASA_SECRET", data["NASA_SECRET"])
+        if "IMMICH_KEY" in data:
+            device_config.set_env_key("IMMICH_KEY", data["IMMICH_KEY"])
+        if "UNSPLASH_ACCESS_KEY" in data:
+            device_config.set_env_key("UNSPLASH_ACCESS_KEY", data["UNSPLASH_ACCESS_KEY"])
+        return jsonify({"status": "success"})
+    except Exception as e:
+        logger.error(f"Failed to update API keys: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 # Register opener for HEIF/HEIC images
 # register_heif_opener()
