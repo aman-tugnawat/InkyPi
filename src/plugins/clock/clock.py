@@ -146,10 +146,12 @@ class Clock(BasePlugin):
         face_size = int(dim * 0.45)
 
         # clock shadow
-        image_draw.circle((w/2,h/2 + shadow_offset), face_size+2, fill=(0,0,0,50))
+        r = face_size + 2
+        image_draw.ellipse((w/2 - r, h/2 + shadow_offset - r, w/2 + r, h/2 + shadow_offset + r), fill=(0,0,0,50))
 
         # clock outline
-        image_draw.circle((w/2,h/2), face_size, fill=primary_color, outline=secondary_color, width=int(dim * 0.03125))
+        r = face_size
+        image_draw.ellipse((w/2 - r, h/2 - r, w/2 + r, h/2 + r), fill=primary_color, outline=secondary_color, width=int(dim * 0.03125))
         
         Clock.draw_hour_marks(image_draw._image, face_size - int(w*0.04375))
 
@@ -292,12 +294,16 @@ class Clock(BasePlugin):
 
         corners = Clock.calculate_rectangle_corners(start, end, hand_width)
         if round_corners:
-            draw.circle(start, hand_width-0.6, fill=border_color)
-            draw.circle(end, hand_width-0.8, fill=border_color)
+            r = hand_width - 0.6
+            draw.ellipse((start[0]-r, start[1]-r, start[0]+r, start[1]+r), fill=border_color)
+            r = hand_width - 0.8
+            draw.ellipse((end[0]-r, end[1]-r, end[0]+r, end[1]+r), fill=border_color)
         draw.polygon(corners, fill=hand_color, outline=border_color, width=border_width)
         if round_corners:
-            draw.circle(start, hand_width-2, fill=hand_color)
-            draw.circle(end, hand_width-2, fill=hand_color)
+            r = hand_width - 2
+            draw.ellipse((start[0]-r, start[1]-r, start[0]+r, start[1]+r), fill=hand_color)
+            r = hand_width - 2
+            draw.ellipse((end[0]-r, end[1]-r, end[0]+r, end[1]+r), fill=hand_color)
 
         return image
 
@@ -357,8 +363,9 @@ class Clock(BasePlugin):
         w, h = image.size
 
         # center point
-        center = (w / 2, h/2)
-        draw.circle(center, center_radius, fill=fill_color, outline=outline_color, width=width)
+        # center point
+        r = center_radius
+        draw.ellipse((w/2 - r, h/2 - r, w/2 + r, h/2 + r), fill=fill_color, outline=outline_color, width=width)
 
     @staticmethod
     def draw_hour_marks(image, radius, line_color=(255, 255, 255), line_length=25, line_width=3):
