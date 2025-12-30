@@ -24,14 +24,15 @@ class ImmichProvider:
         r = requests.get(f"{self.base_url}/api/albums", headers=self.headers)
         r.raise_for_status()
         albums = r.json()
-        album = [a for a in albums if a["albumName"] == album][0]
+        # Find album by name
+        album_data = next((a for a in albums if a["albumName"] == album), None)
 
-        if album is None:
+        if album_data is None:
             raise RuntimeError(f"Album {album} not found.")
 
-        return album["id"]
+        return album_data["id"]
 
-    def get_asset_ids(self, album_id: str) -> list[str]:
+    def get_asset_ids(self, album_id: str) -> list:
         all_items = []
         page_items = [1]
         page = 1
@@ -52,7 +53,8 @@ class ImmichProvider:
 
         return [asset["id"] for asset in all_items]
 
-    def get_image(self, album: str) -> ImageFile | None:
+    # --- FIX APPLIED HERE: Removed '| None' ---
+    def get_image(self, album: str) -> ImageFile:
         try:
             logger.info(f"Getting id for album {album}")
             album_id = self.get_album_id(album)
@@ -60,6 +62,10 @@ class ImmichProvider:
             asset_ids = self.get_asset_ids(album_id)
         except Exception as e:
             logger.error(f"Error grabbing image from {self.base_url}: {e}")
+            return None
+
+        if not asset_ids:
+            logger.error("No assets found in album")
             return None
 
         asset_id = choice(asset_ids)
@@ -101,10 +107,11 @@ class ImageAlbum(BasePlugin):
             provider = ImmichProvider(url, key, orientation)
             img = provider.get_image(album)
             if not img:
-                raise RuntimeError("Failed to load image, please check logs.")
+                raise RuntimeError("Failed to load image from Immich (check logs).")
 
         if img is None:
-            raise RuntimeError("Failed to load image, please check logs.")
+            # Fallback or error if no provider matched or image failed
+            raise RuntimeError("Failed to load image. Ensure Provider is set to Immich and settings are correct.")
 
         if settings.get('padImage') == "true":
             dimensions = device_config.get_resolution()
