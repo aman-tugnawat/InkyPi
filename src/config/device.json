@@ -3,7 +3,7 @@
     "orientation": "horizontal",
     "inverted_image": false,
     "scheduler_sleep_time": 60,
-    "startup": true,
+    "startup": false,
     "display_type": "epd7in3e",
     "resolution": [
         800,
@@ -22,10 +22,10 @@
         "active_playlist": null
     },
     "refresh_info": {
-        "refresh_time": null,
-        "image_hash": null,
-        "refresh_type": null,
-        "plugin_id": null
+        "refresh_time": "2025-12-30T09:04:22.207759+00:00",
+        "image_hash": "1ead333795b342c423dc54283b2c68573c326f8b86c0ec99ac6e2157bd75e0ba",
+        "refresh_type": "Manual Update",
+        "plugin_id": "image_upload"
     },
     "port": 9999
 }
