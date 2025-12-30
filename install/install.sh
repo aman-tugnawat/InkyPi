@@ -405,12 +405,13 @@ if [[ -n "$WS_TYPE" ]]; then
 fi
 enable_interfaces
 install_debian_dependencies
-# check OS version for Bookworm to setup zramswap
-if [[ $(get_os_version) = "12" ]] ; then
-  echo "OS version is Bookworm - setting up zramswap"
+# check OS version for <= 12 to setup zramswap
+OS_VER=$(get_os_version | cut -d. -f1)
+if [[ "$OS_VER" -le 12 ]] ; then
+  echo "OS version is $OS_VER (<= 12) - setting up zramswap"
   setup_zramswap_service
 else
-  echo "OS version is not Bookworm - skipping zramswap setup."
+  echo "OS version is $OS_VER (> 12) - skipping zramswap setup."
 fi
 setup_earlyoom_service
 copy_project
