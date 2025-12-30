@@ -333,9 +333,15 @@ start_service() {
 copy_project() {
   # Check if an existing installation is present
   echo "Installing $APPNAME to $INSTALL_PATH"
+  SUCCESS_MARKER="$INSTALL_PATH/.install_complete"
+  
   if [[ -d $INSTALL_PATH ]]; then
-    rm -rf "$INSTALL_PATH" > /dev/null
-    show_loader "\tRemoving existing installation found at $INSTALL_PATH"
+    if [[ -f "$SUCCESS_MARKER" ]]; then
+        rm -rf "$INSTALL_PATH" > /dev/null
+        show_loader "\tRemoving previous successful installation found at $INSTALL_PATH"
+    else
+        echo_success "\tResuming incomplete installation found at $INSTALL_PATH"
+    fi
   fi
 
   mkdir -p "$INSTALL_PATH"
@@ -361,6 +367,9 @@ get_os_version() {
 }
 
 ask_for_reboot() {
+  # Mark installation as successful
+  touch "$INSTALL_PATH/.install_complete"
+  
   # Get hostname and IP address
   hostname=$(get_hostname)
   ip_address=$(get_ip_address)
