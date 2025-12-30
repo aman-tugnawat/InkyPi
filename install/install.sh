@@ -375,7 +375,7 @@ ask_for_reboot() {
   ip_address=$(get_ip_address)
   echo_header "$(echo_success "${APPNAME^^} Installation Complete!")"
   echo_header "[•] A reboot of your Raspberry Pi is required for the changes to take effect"
-  echo_header "[•] After your Pi is rebooted, you can access the web UI by going to $(echo_blue "'$hostname.local'") or $(echo_blue "'$ip_address'") in your browser."
+  echo_header "[•] After your Pi is rebooted, you can access the web UI by going to $(echo_blue "http://$hostname.local:$WEB_PORT") or $(echo_blue "http://$ip_address:$WEB_PORT") in your browser."
   echo_header "[•] If you encounter any issues or have suggestions, please submit them here: https://github.com/fatihak/InkyPi/issues"
 
   read -p "Would you like to restart your Raspberry Pi now? [Y/N] " userInput
@@ -428,4 +428,16 @@ install_app_service
 echo "Update JS and CSS files"
 bash $SCRIPT_DIR/update_vendors.sh
 
+verify_installation() {
+  echo_header "Verifying Installation"
+  if $VENV_PATH/bin/python "$SRC_PATH/inkypi.py" --help > /dev/null 2>&1; then
+    echo_success "\tApp startup check passed (dependencies load correctly)"
+  else
+    echo_error "\tApp startup check FAILED. Running manually to show error:"
+    $VENV_PATH/bin/python "$SRC_PATH/inkypi.py" --help
+    echo_error "Please resolve the errors above."
+  fi
+}
+
+verify_installation
 ask_for_reboot
