@@ -81,7 +81,7 @@ def get_font(font_name, font_size=50, font_weight="normal"):
 
         if font_entry:
             font_path = resolve_path(os.path.join("static", "fonts", font_entry["file"]))
-            return ImageFont.truetype(font_path, font_size)
+            return ImageFont.truetype(font_path, int(font_size))
         else:
             logger.warn(f"Requested font weight not found: font_name={font_name}, font_weight={font_weight}")
     else:
