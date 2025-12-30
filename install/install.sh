@@ -256,18 +256,9 @@ install_config() {
 configure_network_settings() {
   echo_header "Network Configuration"
   
-  # Hostname Configuration
+  # Hostname Configuration removed to prevent changing system device name.
   CURRENT_HOSTNAME=$(hostname)
-  read -p "Enter hostname [$CURRENT_HOSTNAME]: " NEW_HOSTNAME
-  NEW_HOSTNAME=${NEW_HOSTNAME:-$CURRENT_HOSTNAME}
-  
-  if [ "$NEW_HOSTNAME" != "$CURRENT_HOSTNAME" ]; then
-    echo "Detail: Changing hostname to $NEW_HOSTNAME"
-    sudo raspi-config nonint do_hostname "$NEW_HOSTNAME"
-    echo_success "\tHostname changed to $NEW_HOSTNAME (requires reboot)"
-  else
-    echo "Hostname remains $CURRENT_HOSTNAME"
-  fi
+  echo "Current Hostname: $CURRENT_HOSTNAME"
 
   # Port Configuration
   DEFAULT_PORT=80
