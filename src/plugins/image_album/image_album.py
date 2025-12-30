@@ -84,24 +84,24 @@ class ImageAlbum(BasePlugin):
         orientation = device_config.get_config("orientation")
         img = None
 
-        match settings.get("albumProvider"):
-            case "Immich":
-                key = device_config.load_env_key("IMMICH_KEY")
-                if not key:
-                    raise RuntimeError("Immich API Key not configured.")
+        provider_name = settings.get("albumProvider")
+        if provider_name == "Immich":
+            key = device_config.load_env_key("IMMICH_KEY")
+            if not key:
+                raise RuntimeError("Immich API Key not configured.")
 
-                url = settings.get('url')
-                if not url:
-                    raise RuntimeError("URL is required.")
+            url = settings.get('url')
+            if not url:
+                raise RuntimeError("URL is required.")
 
-                album = settings.get('album')
-                if not album:
-                    raise RuntimeError("Album is required.")
+            album = settings.get('album')
+            if not album:
+                raise RuntimeError("Album is required.")
 
-                provider = ImmichProvider(url, key, orientation)
-                img = provider.get_image(album)
-                if not img:
-                    raise RuntimeError("Failed to load image, please check logs.")
+            provider = ImmichProvider(url, key, orientation)
+            img = provider.get_image(album)
+            if not img:
+                raise RuntimeError("Failed to load image, please check logs.")
 
         if img is None:
             raise RuntimeError("Failed to load image, please check logs.")
