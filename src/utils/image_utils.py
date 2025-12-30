@@ -6,6 +6,7 @@ import logging
 import hashlib
 import tempfile
 import subprocess
+import shutil
 
 logger = logging.getLogger(__name__)
 
@@ -112,24 +113,20 @@ def take_screenshot(target, dimensions, timeout_ms=None):
         with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as img_file:
             img_file_path = img_file.name
 
+        # Check if wkhtmltoimage is installed
+        if not shutil.which("wkhtmltoimage"):
+            logger.error("wkhtmltoimage is not installed. Please install it with: sudo apt-get install wkhtmltopdf")
+            return None
+
         command = [
-            "chromium-browser",
+            "wkhtmltoimage",
+            "--enable-local-file-access",
+            "--width", str(dimensions[0]),
+            "--height", str(dimensions[1]),
+            "--javascript-delay", "1000", # Wait for JS to execute (e.g. truncateLists)
+            "--format", "png",
             target,
-            "--headless",
-            f"--screenshot={img_file_path}",
-            f"--window-size={dimensions[0]},{dimensions[1]}",
-            "--disable-dev-shm-usage",
-            "--disable-gpu",
-            "--use-gl=swiftshader",
-            "--hide-scrollbars",
-            "--in-process-gpu",
-            "--js-flags=--jitless",
-            "--disable-zero-copy",
-            "--disable-gpu-memory-buffer-compositor-resources",
-            "--disable-extensions",
-            "--disable-plugins",
-            "--mute-audio",
-            "--no-sandbox"
+            img_file_path
         ]
         if timeout_ms:
             command.append(f"--timeout={timeout_ms}")
