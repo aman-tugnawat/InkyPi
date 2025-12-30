@@ -208,14 +208,14 @@ setup_earlyoom_service() {
 create_venv(){
   echo "Creating python virtual environment. "
   python3 -m venv "$VENV_PATH"
-  $VENV_PATH/bin/python -m pip install --upgrade pip setuptools wheel > /dev/null
-  $VENV_PATH/bin/python -m pip install -r $PIP_REQUIREMENTS_FILE -qq > /dev/null &
+  $VENV_PATH/bin/python -m pip install --upgrade pip setuptools wheel --retries 1 > /dev/null
+  $VENV_PATH/bin/python -m pip install -r $PIP_REQUIREMENTS_FILE -qq --retries 1 > /dev/null &
   show_loader "\tInstalling python dependencies. "
 
   # do additional dependencies for Waveshare support.
   if [[ -n "$WS_TYPE" ]]; then
     echo "Adding additional dependencies for waveshare to the python virtual environment. "
-    $VENV_PATH/bin/python -m pip install -r $WS_REQUIREMENTS_FILE > ws_pip_install.log &
+    $VENV_PATH/bin/python -m pip install -r $WS_REQUIREMENTS_FILE --retries 1 > ws_pip_install.log &
     show_loader "\tInstalling additional Waveshare python dependencies. "
   fi
 
@@ -251,6 +251,51 @@ install_config() {
   else
     echo_success "\tdevice.json already exists in $CONFIG_DIR"
   fi
+}
+
+configure_network_settings() {
+  echo_header "Network Configuration"
+  
+  # Hostname Configuration
+  CURRENT_HOSTNAME=$(hostname)
+  read -p "Enter hostname [$CURRENT_HOSTNAME]: " NEW_HOSTNAME
+  NEW_HOSTNAME=${NEW_HOSTNAME:-$CURRENT_HOSTNAME}
+  
+  if [ "$NEW_HOSTNAME" != "$CURRENT_HOSTNAME" ]; then
+    echo "Detail: Changing hostname to $NEW_HOSTNAME"
+    sudo raspi-config nonint do_hostname "$NEW_HOSTNAME"
+    echo_success "\tHostname changed to $NEW_HOSTNAME (requires reboot)"
+  else
+    echo "Hostname remains $CURRENT_HOSTNAME"
+  fi
+
+  # Port Configuration
+  DEFAULT_PORT=80
+  read -p "Enter web interface port [$DEFAULT_PORT]: " WEB_PORT
+  WEB_PORT=${WEB_PORT:-$DEFAULT_PORT}
+
+  # Validate port is a number
+  if ! [[ "$WEB_PORT" =~ ^[0-9]+$ ]]; then
+      echo_error "Invalid port number. Defaulting to $DEFAULT_PORT"
+      WEB_PORT=$DEFAULT_PORT
+  fi
+  
+  echo "Using port: $WEB_PORT"
+  
+  # Update device.json with the new port
+  DEVICE_JSON="$SRC_PATH/config/device.json"
+  
+  # We use python to safely update the json file as we are in the install context where python3 is available
+  # We can't rely on jq being installed
+  python3 -c "import sys, json; 
+try:
+    with open('$DEVICE_JSON', 'r') as f: data = json.load(f)
+    data['port'] = int('$WEB_PORT')
+    with open('$DEVICE_JSON', 'w') as f: json.dump(data, f, indent=4)
+    print('Updated device.json with port $WEB_PORT')
+except Exception as e:
+    print(f'Error updating config: {e}')"
+
 }
 
 #
@@ -370,6 +415,7 @@ fi
 setup_earlyoom_service
 copy_project
 create_venv
+configure_network_settings
 install_executable
 install_config
 # update the config file with additional WS if defined.

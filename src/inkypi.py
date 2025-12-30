@@ -49,8 +49,10 @@ if args.dev:
     logger.info("Starting InkyPi in DEVELOPMENT mode on port 8080")
 else:
     DEV_MODE = False
-    PORT = 80
-    logger.info("Starting InkyPi in PRODUCTION mode on port 80")
+    # Get port from config, default to 80
+    config_port = Config().get_config("port", 80)
+    PORT = int(config_port)
+    logger.info(f"Starting InkyPi in PRODUCTION mode on port {PORT}")
 logging.getLogger('waitress.queue').setLevel(logging.ERROR)
 app = Flask(__name__)
 template_dirs = [
