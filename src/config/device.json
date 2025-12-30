@@ -26,5 +26,6 @@
         "image_hash": null,
         "refresh_type": null,
         "plugin_id": null
-    }
+    },
+    "port": 9999
 }
