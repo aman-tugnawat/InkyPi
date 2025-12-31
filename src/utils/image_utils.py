@@ -123,14 +123,18 @@ def take_screenshot(target, dimensions, timeout_ms=None):
             "--enable-local-file-access",
             "--width", str(dimensions[0]),
             "--height", str(dimensions[1]),
-            "--javascript-delay", "1000", # Wait for JS to execute (e.g. truncateLists)
-            "--format", "png",
-            target,
-            img_file_path
+            "--javascript-delay", "1000",
+            "--format", "png"
         ]
-        if timeout_ms:
-            command.append(f"--timeout={timeout_ms}")
-        result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+        command.extend([target, img_file_path])
+
+        # Use Python's subprocess timeout instead of a flag
+        try:
+            result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=timeout_ms/1000 if timeout_ms else None)
+        except subprocess.TimeoutExpired:
+            logger.error("Screenshot timed out")
+            return None
 
         # Check if the process failed or the output file is missing
         if result.returncode != 0 or not os.path.exists(img_file_path):
